@@ -8,20 +8,18 @@ A peer-to-peer book exchange platform — list books you own, find books near yo
 |-------|------|
 | **Frontend** | React (Vite) + React Router + Tailwind CSS |
 | **Backend** | Node.js + Express (REST API) |
-| **Database** | SQLite via **Prisma ORM** |
+| **Database** | PostgreSQL via **Prisma ORM** |
 | **Auth** | JWT + bcrypt (email / password) |
 
 ## Project structure
 
 ```
 BookSwap/
-├── server/                 # Express API + Prisma + SQLite
+├── server/                 # Express API + Prisma + PostgreSQL
 │   ├── prisma/
-│   │   ├── schema.prisma   # data models
-│   │   ├── seed.js         # demo data (12 users, 58 books, chats, requests, communities)
-│   │   └── dev.db          # SQLite database (generated)
+│   │   └── schema.prisma   # data models
 │   └── src/
-│       ├── index.js        # app entry
+│       ├── index.js        # app entry (also serves the built client in prod)
 │       ├── prisma.js       # Prisma client
 │       ├── middleware/     # JWT auth
 │       └── routes/         # auth, books, users, chats, communities, lending
@@ -32,37 +30,45 @@ BookSwap/
         └── lib/            # api client, auth context, ui helpers
 ```
 
-## Getting started
+## Getting started (local development)
 
-From the repo root:
+The app uses PostgreSQL. The quickest way to get a local database is Docker.
 
 ```bash
-# 1. Install everything
+# 1. Install dependencies for both server and client
 npm run install:all
 
-# 2. Set up the database + seed demo data (first time only)
-cd server
-npx prisma migrate dev --name init   # creates dev.db (skip if already done)
-npm run seed
-cd ..
+# 2. Start a local Postgres (host port 5433 to avoid clashing with an existing 5432)
+docker run -d --name bookswap-pg \
+  -e POSTGRES_USER=bookswap -e POSTGRES_PASSWORD=bookswap -e POSTGRES_DB=bookswap \
+  -p 5433:5432 postgres:16-alpine
 
-# 3. Run both servers together
+# 3. Configure the server env (copy the example, then edit if needed)
+cp server/.env.example server/.env
+#   For the Docker Postgres above, set:
+#   DATABASE_URL="postgresql://bookswap:bookswap@localhost:5433/bookswap?schema=public"
+
+# 4. Create the database tables
+cd server && npx prisma db push && cd ..
+
+# 5. Run both servers together
 npm run dev
 ```
 
 - Client → http://localhost:5173
 - API → http://localhost:4000 (proxied under `/api`)
 
-Or run them separately: `npm run dev:server` and `npm run dev:client`.
+Run them separately with `npm run dev:server` and `npm run dev:client`.
 
-## Demo login
+> The database starts **empty** — there is no seed/demo data. Open the app, click
+> **Sign up**, create your account, and start adding books.
 
-The login screen is pre-filled with the demo user:
+Already have Postgres running elsewhere (a local install, a cloud database, etc.)?
+Skip step 2 and just point `DATABASE_URL` at it.
 
-- **Email:** `raj@bookswap.in`
-- **Password:** `raj123`
+## Deploying to production
 
-Every other seeded user (Meera, Aarav, Priya, …) uses the password `password`.
+See [DEPLOY.md](DEPLOY.md) for a free single-service deploy (Neon Postgres + Render).
 
 ## Features
 

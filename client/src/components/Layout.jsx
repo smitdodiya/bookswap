@@ -5,7 +5,6 @@ import Avatar from "./Avatar";
 import { useAuth } from "../lib/auth";
 import { api } from "../lib/api";
 import AddBookModal from "./AddBookModal";
-import SwitchAccountModal from "./SwitchAccountModal";
 
 const NAV = [
   { to: "/", label: "Home & Search", icon: "search", end: true },
@@ -20,7 +19,6 @@ export default function Layout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [showAdd, setShowAdd] = useState(false);
-  const [showSwitch, setShowSwitch] = useState(false);
   const [counts, setCounts] = useState({ requests: 0, chats: 0 });
 
   const refreshCounts = () => {
@@ -87,7 +85,7 @@ export default function Layout({ children }) {
           <Icon name="plus" className="h-4 w-4" /> Add a book
         </button>
 
-        <div className="mt-auto space-y-2">
+        <div className="mt-auto">
           <div className="flex items-center gap-3 rounded-2xl bg-card p-3 shadow-soft">
             <Avatar name={user?.name} size="md" />
             <div className="min-w-0 flex-1">
@@ -104,12 +102,6 @@ export default function Layout({ children }) {
               <Icon name="logout" className="h-4 w-4" />
             </button>
           </div>
-          <button
-            onClick={() => setShowSwitch(true)}
-            className="flex w-full items-center justify-center gap-2 rounded-xl border border-line bg-white/60 py-2 text-sm font-semibold text-ink/80 transition hover:bg-white"
-          >
-            <Icon name="swap" className="h-4 w-4" /> Switch account
-          </button>
         </div>
       </aside>
 
@@ -150,17 +142,6 @@ export default function Layout({ children }) {
         <AddBookModal
           onClose={() => setShowAdd(false)}
           onAdded={() => { setShowAdd(false); navigate("/profile"); }}
-        />
-      )}
-
-      {showSwitch && (
-        <SwitchAccountModal
-          onClose={() => setShowSwitch(false)}
-          onSwitched={() => {
-            setShowSwitch(false);
-            refreshCounts();
-            navigate("/");
-          }}
         />
       )}
     </div>

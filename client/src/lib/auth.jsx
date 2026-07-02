@@ -31,21 +31,13 @@ export function AuthProvider({ children }) {
     setUser(d.user);
   };
 
-  // Demo convenience: switch into any seeded account without a password.
-  const demoLogin = async (userId) => {
-    const d = await api.post("/auth/demo-login", { userId });
-    setToken(d.token);
-    setUser(d.user);
-    return d.user;
-  };
-
   const logout = () => {
     clearToken();
     setUser(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, demoLogin, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, signup, logout }}>
       {children}
     </AuthContext.Provider>
   );

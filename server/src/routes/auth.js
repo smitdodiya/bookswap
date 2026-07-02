@@ -53,30 +53,4 @@ router.get("/me", requireAuth, async (req, res) => {
   res.json({ user: publicUser(user) });
 });
 
-// --- Demo helpers (this is a demo app; these ease testing the swap flow) ---
-// These allow passwordless login as any user, so they must be disabled in any
-// real deployment. Enabled by default; set DEMO_MODE=false to turn them off.
-const demoEnabled = process.env.DEMO_MODE !== "false";
-function requireDemo(_req, res, next) {
-  if (!demoEnabled) return res.status(403).json({ error: "Demo mode is disabled" });
-  next();
-}
-
-// List every seeded account so the UI can offer a one-tap account switcher.
-router.get("/demo-users", requireDemo, async (_req, res) => {
-  const users = await prisma.user.findMany({
-    select: { id: true, name: true, city: true, email: true },
-    orderBy: [{ city: "asc" }, { name: "asc" }],
-  });
-  res.json({ users });
-});
-
-// Log in as any seeded user without a password (demo convenience only).
-router.post("/demo-login", requireDemo, async (req, res) => {
-  const { userId } = req.body;
-  const user = await prisma.user.findUnique({ where: { id: userId } });
-  if (!user) return res.status(404).json({ error: "User not found" });
-  res.json({ token: signToken(user), user: publicUser(user) });
-});
-
 export default router;

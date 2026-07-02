@@ -41,38 +41,39 @@ Cost: **₹0** — no credit card required for either service.
    connection string from Step 1.
 4. Click **Apply / Deploy**. First build takes a few minutes.
    - `JWT_SECRET` is generated for you.
-   - `DEMO_MODE` is set to `false` and `NODE_ENV` to `production`.
+   - `NODE_ENV` is set to `production`.
 5. When it's live you'll get a URL like `https://bookswap.onrender.com`.
 
-## Step 4 — Load the demo data (once)
+## Step 4 — Create your account
 
-The tables are created automatically on first start (`prisma db push`), but they're
-empty. To load the demo users/books once:
+The tables are created automatically on first start (`prisma db push`) and the
+database starts **empty** — no demo or seed data. Open your Render URL, click
+**Sign up**, and create your account. That's it — you're running a real instance.
 
-- In the Render dashboard, open your service → **Shell** tab, then run:
-  ```bash
-  cd server && npm run seed
-  ```
-
-You can now log in at your Render URL:
-- **Email:** `raj@bookswap.in` **Password:** `raj123`
-
-(With `DEMO_MODE=false`, one-tap account switching is disabled — everyone logs in
-with email + password, which is correct for a real deployment.)
+> **Keeping production clean:** if you ever ran the old demo seeder against this
+> database, wipe it from the Render **Shell** tab with `cd server && npm run db:reset`
+> (this drops and recreates the schema empty — it deletes all data).
 
 ---
 
-## Local development after this change
+## Local development
 
-The database is now Postgres, so local dev needs a Postgres URL too. Easiest:
-create a **second free Neon database** (or a Neon branch) for local work and put
-its connection string in `server/.env` (`DATABASE_URL=...`). Then:
+The database is Postgres, so local dev needs a Postgres URL too. The quickest
+option is a local Docker container — see the **Getting started** section in
+[README.md](README.md). In short:
 
 ```bash
 npm run install:all
-cd server && npx prisma db push && npm run seed && cd ..
+docker run -d --name bookswap-pg \
+  -e POSTGRES_USER=bookswap -e POSTGRES_PASSWORD=bookswap -e POSTGRES_DB=bookswap \
+  -p 5433:5432 postgres:16-alpine
+cp server/.env.example server/.env   # set DATABASE_URL to the container above
+cd server && npx prisma db push && cd ..
 npm run dev
 ```
+
+Prefer the cloud? Create a **second free Neon database** (or a Neon branch) for
+local work and point `DATABASE_URL` at it instead of the Docker container.
 
 ## Updating the live site later
 

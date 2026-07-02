@@ -1,0 +1,36 @@
+// Curated list of supported cities, offered as a dropdown at signup so people
+// pick a consistent, correctly-spelled value instead of free-typing (which led
+// to near-duplicates like "rajkot" / "Rajkot " being treated as separate).
+// Gujarat-heavy (our core audience) plus the major Indian metros. Keep sorted.
+export const CITIES = [
+  "Ahmedabad",
+  "Anand",
+  "Bengaluru",
+  "Bharuch",
+  "Bhavnagar",
+  "Bhuj",
+  "Chennai",
+  "Delhi",
+  "Gandhidham",
+  "Gandhinagar",
+  "Hyderabad",
+  "Indore",
+  "Jaipur",
+  "Jamnagar",
+  "Junagadh",
+  "Kolkata",
+  "Lucknow",
+  "Mehsana",
+  "Morbi",
+  "Mumbai",
+  "Nadiad",
+  "Nagpur",
+  "Navsari",
+  "Porbandar",
+  "Pune",
+  "Rajkot",
+  "Surat",
+  "Vadodara",
+  "Valsad",
+  "Vapi",
+];

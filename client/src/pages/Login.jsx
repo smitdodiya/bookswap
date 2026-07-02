@@ -1,27 +1,18 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth";
-import { api } from "../lib/api";
+import { CITIES } from "../lib/cities";
 import Icon from "../components/Icon";
-import SwitchAccountModal from "../components/SwitchAccountModal";
 
 export default function Login() {
   const { login, signup } = useAuth();
   const navigate = useNavigate();
   const [mode, setMode] = useState("login");
-  const [showAccounts, setShowAccounts] = useState(false);
-  const [cities, setCities] = useState([]);
   const [form, setForm] = useState({
-    name: "", email: "raj@bookswap.in", password: "raj123", city: "Rajkot", bio: "",
+    name: "", email: "", password: "", city: "", bio: "",
   });
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-
-  // Suggest existing cities on signup so people join an established one rather
-  // than inventing a near-duplicate that filters would treat as separate.
-  useEffect(() => {
-    api.get("/auth/cities").then((d) => setCities(d.cities)).catch(() => {});
-  }, []);
 
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
 
@@ -70,16 +61,17 @@ export default function Login() {
             {mode === "signup" && (
               <>
                 <input className="input" placeholder="Full name" value={form.name} onChange={set("name")} />
-                <input
-                  className="input"
-                  placeholder="City"
-                  list="cities"
+                <select
+                  className={`input ${form.city ? "" : "text-muted"}`}
                   value={form.city}
                   onChange={set("city")}
-                />
-                <datalist id="cities">
-                  {cities.map((c) => <option key={c} value={c} />)}
-                </datalist>
+                  required
+                >
+                  <option value="" disabled>Select your city</option>
+                  {CITIES.map((c) => (
+                    <option key={c} value={c} className="text-ink">{c}</option>
+                  ))}
+                </select>
               </>
             )}
             <input className="input" type="email" placeholder="Email" value={form.email} onChange={set("email")} />
@@ -92,35 +84,23 @@ export default function Login() {
             </button>
           </form>
 
-          {mode === "login" && (
-            <>
-              <p className="mt-4 text-center text-xs text-muted">
-                Demo user is pre-filled — just tap <span className="font-semibold text-ink">Log in</span>.
-              </p>
-              <div className="my-5 flex items-center gap-3 text-xs text-muted">
-                <span className="h-px flex-1 bg-line" /> or <span className="h-px flex-1 bg-line" />
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowAccounts(true)}
-                className="btn-ghost w-full"
-              >
-                <Icon name="users" className="h-4 w-4" /> Pick a demo account
-              </button>
-              <p className="mt-3 text-center text-[11px] text-muted">
-                Sign in as any neighbour to play both sides of a swap.
-              </p>
-            </>
-          )}
+          <p className="mt-5 text-center text-xs text-muted">
+            {mode === "login" ? (
+              <>New here?{" "}
+                <button type="button" onClick={() => setMode("signup")} className="font-semibold text-primary">
+                  Create an account
+                </button>
+              </>
+            ) : (
+              <>Already have an account?{" "}
+                <button type="button" onClick={() => setMode("login")} className="font-semibold text-primary">
+                  Log in
+                </button>
+              </>
+            )}
+          </p>
         </div>
       </div>
-
-      {showAccounts && (
-        <SwitchAccountModal
-          onClose={() => setShowAccounts(false)}
-          onSwitched={() => navigate("/")}
-        />
-      )}
     </div>
   );
 }

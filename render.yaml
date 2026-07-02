@@ -14,9 +14,6 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      # Turn OFF passwordless demo login in production.
-      - key: DEMO_MODE
-        value: "false"
       # Auto-generated strong secret for signing JWTs.
       - key: JWT_SECRET
         generateValue: true

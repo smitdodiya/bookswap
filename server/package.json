@@ -5,9 +5,8 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
-    "seed": "node prisma/seed.js",
-    "db:reset": "prisma migrate reset --force --skip-seed && npm run seed",
-    "db:push": "prisma db push"
+    "db:push": "prisma db push",
+    "db:reset": "prisma db push --force-reset"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

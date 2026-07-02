@@ -2,10 +2,9 @@
   "name": "bookswap",
   "private": true,
   "version": "1.0.0",
-  "description": "BookSwap — peer-to-peer book exchange (React + Express + SQLite/Prisma)",
+  "description": "BookSwap — peer-to-peer book exchange (React + Express + Postgres/Prisma)",
   "scripts": {
     "install:all": "cd server && npm install && cd ../client && npm install",
-    "seed": "cd server && npm run seed",
     "dev:server": "cd server && npm run dev",
     "dev:client": "cd client && npm run dev",
     "dev": "concurrently -n server,client -c yellow,cyan \"npm:dev:server\" \"npm:dev:client\"",
