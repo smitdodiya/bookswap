@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  city      String
+  bio       String   @default("")
+  createdAt DateTime @default(now())
+
+  books             Book[]
+  sentMessages      Message[]          @relation("SentMessages")
+  receivedMessages  Message[]          @relation("ReceivedMessages")
+  memberships       CommunityMember[]
+  communityMessages CommunityMessage[]
+
+  // Lending requests
+  requestsFrom LendingRequest[] @relation("RequestFrom") // I initiated
+  requestsTo   LendingRequest[] @relation("RequestTo")   // directed at me
+}
+
+model Book {
+  id        String   @id @default(cuid())
+  title     String
+  author    String
+  condition String   @default("Good") // New, Good, Worn
+  genre     String   @default("Non-fiction")
+  cover     String   @default("beige") // sage, lavender, beige, terracotta, slate
+  status    String   @default("Available") // Available, Lent out, Pending, Returning
+  createdAt DateTime @default(now())
+
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  // Who currently holds it (for the "Lent out — with [Name]" badge)
+  heldById   String?
+  heldByName String?
+
+  requests LendingRequest[]
+}
+
+model Message {
+  id        String    @id @default(cuid())
+  body      String
+  createdAt DateTime  @default(now())
+  readAt    DateTime? // set when the recipient opens the thread
+
+  senderId   String
+  sender     User   @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId String
+  receiver   User   @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+}
+
+model Community {
+  id       String             @id @default(cuid())
+  name     String
+  city     String
+  members  CommunityMember[]
+  messages CommunityMessage[]
+}
+
+model CommunityMessage {
+  id          String   @id @default(cuid())
+  body        String
+  createdAt   DateTime @default(now())
+
+  communityId String
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  senderId    String
+  sender      User      @relation(fields: [senderId], references: [id], onDelete: Cascade)
+}
+
+model CommunityMember {
+  id          String @id @default(cuid())
+  userId      String
+  communityId String
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, communityId])
+}
+
+model LendingRequest {
+  id        String   @id @default(cuid())
+  bookId    String
+  fromId    String // initiator
+  toId      String // counterparty
+  type      String // "handover" (giving book) or "return" (returning book)
+  status    String   @default("Pending") // Pending, Accepted, Declined, Cancelled
+  createdAt DateTime @default(now())
+
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  from User @relation("RequestFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  to   User @relation("RequestTo", fields: [toId], references: [id], onDelete: Cascade)
+}
