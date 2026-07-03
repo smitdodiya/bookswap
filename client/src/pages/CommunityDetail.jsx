@@ -5,6 +5,7 @@ import Icon from "../components/Icon";
 import Avatar from "../components/Avatar";
 import BookCover from "../components/BookCover";
 import CommunityChat from "../components/CommunityChat";
+import InviteToCommunityModal from "../components/InviteToCommunityModal";
 import ErrorState from "../components/ErrorState";
 
 export default function CommunityDetail() {
@@ -14,6 +15,7 @@ export default function CommunityDetail() {
   const [books, setBooks] = useState([]);
   const [q, setQ] = useState("");
   const [tab, setTab] = useState("library"); // "library" | "chat"
+  const [showInvite, setShowInvite] = useState(false);
   const [error, setError] = useState(false);
 
   const load = (query = "") => {
@@ -69,20 +71,40 @@ export default function CommunityDetail() {
             <span>{community.bookCount} books</span>
           </p>
         </div>
-        <button
-          onClick={toggleJoin}
-          className={community.joined
-            ? "rounded-xl border border-line bg-white px-5 py-2.5 font-semibold text-ink transition hover:bg-cream"
-            : "btn-primary"}
-        >
-          {community.joined ? "Joined" : "Join community"}
-        </button>
+        {community.joined ? (
+          <button
+            onClick={toggleJoin}
+            title="Leave this community"
+            className="group rounded-xl border border-line bg-white px-5 py-2.5 font-semibold text-ink transition hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
+          >
+            <span className="flex items-center gap-1.5 group-hover:hidden">
+              <Icon name="check" className="h-4 w-4" /> Joined
+            </span>
+            <span className="hidden items-center gap-1.5 group-hover:flex">
+              <Icon name="logout" className="h-4 w-4" /> Leave
+            </span>
+          </button>
+        ) : (
+          <button onClick={toggleJoin} className="btn-primary">
+            Join community
+          </button>
+        )}
       </div>
 
       {/* Members */}
       <div className="mt-9 flex items-center justify-between">
         <h2 className="font-display text-xl font-bold text-ink">Members</h2>
-        <span className="text-sm text-muted">{community.memberCount} readers</span>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-muted">{community.memberCount} readers</span>
+          {community.joined && (
+            <button
+              onClick={() => setShowInvite(true)}
+              className="flex items-center gap-1.5 rounded-xl border border-line bg-white px-3 py-1.5 text-sm font-semibold text-ink transition hover:bg-cream"
+            >
+              <Icon name="userPlus" className="h-4 w-4" /> Invite
+            </button>
+          )}
+        </div>
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
         {community.members.map((m) => (
@@ -153,6 +175,14 @@ export default function CommunityDetail() {
         <div className="mt-6">
           <CommunityChat community={community} onJoin={toggleJoin} />
         </div>
+      )}
+
+      {showInvite && (
+        <InviteToCommunityModal
+          communityId={id}
+          communityName={community.name}
+          onClose={() => setShowInvite(false)}
+        />
       )}
     </div>
   );
