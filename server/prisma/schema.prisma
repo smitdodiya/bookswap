@@ -22,6 +22,10 @@ model User {
   memberships       CommunityMember[]
   communityMessages CommunityMessage[]
 
+  // Community invites
+  invitesSent     CommunityInvite[] @relation("InvitesSent")
+  invitesReceived CommunityInvite[] @relation("InvitesReceived")
+
   // Lending requests
   requestsFrom LendingRequest[] @relation("RequestFrom") // I initiated
   requestsTo   LendingRequest[] @relation("RequestTo")   // directed at me
@@ -65,6 +69,23 @@ model Community {
   city     String
   members  CommunityMember[]
   messages CommunityMessage[]
+  invites  CommunityInvite[]
+}
+
+model CommunityInvite {
+  id          String   @id @default(cuid())
+  status      String   @default("Pending") // Pending, Accepted, Declined
+  createdAt   DateTime @default(now())
+
+  communityId String
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  inviterId   String // who sent the invite
+  inviter     User      @relation("InvitesSent", fields: [inviterId], references: [id], onDelete: Cascade)
+  inviteeId   String // who was invited
+  invitee     User      @relation("InvitesReceived", fields: [inviteeId], references: [id], onDelete: Cascade)
+
+  // One outstanding invite per person per community (re-invites reuse the row).
+  @@unique([communityId, inviteeId])
 }
 
 model CommunityMessage {

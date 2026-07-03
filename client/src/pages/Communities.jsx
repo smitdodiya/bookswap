@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import Icon from "../components/Icon";
 import Avatar from "../components/Avatar";
+import CreateCommunityModal from "../components/CreateCommunityModal";
 
 function CommunityCard({ c, onJoinToggle, onOpen }) {
   return (
@@ -20,14 +21,23 @@ function CommunityCard({ c, onJoinToggle, onOpen }) {
             </p>
           </div>
         </div>
-        <button
-          onClick={onJoinToggle}
-          className={c.joined
-            ? "rounded-xl border border-line bg-white px-4 py-2 text-sm font-semibold text-ink transition hover:bg-cream"
-            : "rounded-xl bg-badge-green px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"}
-        >
-          {c.joined ? "Joined" : "Join"}
-        </button>
+        {c.joined ? (
+          <button
+            onClick={onJoinToggle}
+            title="Leave this community"
+            className="group rounded-xl border border-line bg-white px-4 py-2 text-sm font-semibold text-ink transition hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
+          >
+            <span className="group-hover:hidden">Joined</span>
+            <span className="hidden group-hover:inline">Leave</span>
+          </button>
+        ) : (
+          <button
+            onClick={onJoinToggle}
+            className="rounded-xl bg-badge-green px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+          >
+            Join
+          </button>
+        )}
       </div>
 
       <div className="mt-4 flex items-center justify-between">
@@ -47,8 +57,13 @@ function CommunityCard({ c, onJoinToggle, onOpen }) {
 export default function Communities() {
   const navigate = useNavigate();
   const [data, setData] = useState({ mine: [], discover: [] });
+  const [invites, setInvites] = useState([]);
+  const [showCreate, setShowCreate] = useState(false);
 
-  const load = () => api.get("/communities").then(setData);
+  const load = () => {
+    api.get("/communities").then(setData);
+    api.get("/communities/invites").then((d) => setInvites(d.invites));
+  };
   useEffect(() => { load(); }, []);
 
   const toggle = async (c) => {
@@ -57,12 +72,68 @@ export default function Communities() {
     load();
   };
 
+  const respondToInvite = async (inv, action) => {
+    await api.post(`/communities/invites/${inv.id}/${action}`);
+    load();
+  };
+
   return (
     <div>
-      <h1 className="font-display text-4xl font-bold text-ink">Communities</h1>
-      <p className="mt-2 text-muted">
-        Reading circles near you. Join one to share shelves and discover books together.
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="font-display text-4xl font-bold text-ink">Communities</h1>
+          <p className="mt-2 text-muted">
+            Reading circles near you. Join one to share shelves and discover books together.
+          </p>
+        </div>
+        <button
+          onClick={() => setShowCreate(true)}
+          className="btn-primary shrink-0"
+        >
+          <Icon name="plus" className="h-4 w-4" /> Create community
+        </button>
+      </div>
+
+      {invites.length > 0 && (
+        <>
+          <h2 className="mb-4 mt-9 flex items-center gap-2 font-display text-xl font-bold text-ink">
+            <Icon name="mail" className="h-5 w-5 text-primary" /> Invitations
+          </h2>
+          <div className="grid gap-5 md:grid-cols-2">
+            {invites.map((inv) => (
+              <div key={inv.id} className="card p-5">
+                <div className="flex items-start gap-3">
+                  <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary">
+                    <Icon name="mail" className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h3 className="font-display text-lg font-bold text-ink">{inv.community.name}</h3>
+                    <p className="mt-0.5 flex items-center gap-1.5 text-sm text-muted">
+                      <Icon name="pin" className="h-3.5 w-3.5" /> {inv.community.city}
+                      <span className="text-line">•</span> {inv.community.memberCount} members
+                    </p>
+                    <p className="mt-1 text-sm text-muted">Invited by {inv.inviter.name}</p>
+                  </div>
+                </div>
+                <div className="mt-4 flex gap-3">
+                  <button
+                    onClick={() => respondToInvite(inv, "decline")}
+                    className="btn-ghost flex-1"
+                  >
+                    Decline
+                  </button>
+                  <button
+                    onClick={() => respondToInvite(inv, "accept")}
+                    className="btn-primary flex-1"
+                  >
+                    Accept
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
       {data.mine.length > 0 && (
         <>
@@ -94,6 +165,16 @@ export default function Communities() {
           <p className="text-muted">You've joined every community. Nice.</p>
         )}
       </div>
+
+      {showCreate && (
+        <CreateCommunityModal
+          onClose={() => setShowCreate(false)}
+          onCreated={(community) => {
+            setShowCreate(false);
+            navigate(`/communities/${community.id}`);
+          }}
+        />
+      )}
     </div>
   );
 }
